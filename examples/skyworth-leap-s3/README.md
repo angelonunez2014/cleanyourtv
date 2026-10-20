@@ -7,7 +7,7 @@ problems specific to this box, and the launcher features added in this fork:
 - rotating **photo and video backgrounds**
 - a **sky backdrop** when the background folder is empty
 - **translucent glass** behind the dock and the app rows
-- a **5-app dock** with SmartTube, at **6 tiles per row**
+- a **6-app dock** with SmartTube and Spotify, at **6 tiles per row**, with **smaller tiles below the dock**
 
 Everything was done over Wi-Fi with ADB from a Windows PC. Nothing was uninstalled, and every step
 can be undone.
@@ -270,14 +270,23 @@ does not work here. Change `config.xml` and rebuild instead.
 
 | Key | Value here | Meaning |
 |---|---|---|
-| `dock_apps` | Netflix, Prime Video, YouTube, SmartTube (`com.teamsmart.videomanager.tv`), Disney+ (`com.disneyplus.ph`) | Dock apps, in order |
+| `dock_apps` | Netflix, Prime Video, YouTube, SmartTube (`com.teamsmart.videomanager.tv`), Disney+ (`com.disneyplus.ph`), Spotify (`com.spotify.tv.android`) | Dock apps, in order |
 | `columns` | `6` | Tiles per row. More columns means smaller tiles; 6 is about 17% smaller than 5 |
-| `fill_dock` | `false` | Leave the sixth dock slot empty instead of pulling in a grid app |
+| `fill_dock` | `false` | Leave free dock slots empty instead of pulling in a grid app |
 | `live_tv_package` | *(empty)* | The box has no tuner |
 | `sky_intensity` | `60` | Sky backdrop strength when the background folder is empty |
 | `slideshow_dir` | `/sdcard/Pictures/TvHome` | Background photos and videos. Leave it empty to turn the feature off |
 | `slideshow_seconds` | `30` | Seconds per photo (5 to 3600) |
 | `slideshow_dim` | `35` | Percent darkening of photos and videos (0 to 90) |
+
+### Smaller tiles below the dock
+
+Tiles in the rows below the dock are drawn at 80% of a dock tile's size, centred in the same columns,
+so the dock apps stand out. The number of tiles per row does not change, so remote navigation works
+as before. To change the size, edit `ROW_TILE_SCALE` in
+[`AppAdapter.java`](../../launcher/app/src/main/java/com/gathin/tvhome/AppAdapter.java) and rebuild.
+While you reorder apps, a tile you move between the dock and the rows keeps its old size until you
+finish.
 
 ### Translucent glass
 

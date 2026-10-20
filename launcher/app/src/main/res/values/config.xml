@@ -14,6 +14,7 @@
         <item>com.google.android.youtube.tv</item>
         <item>com.teamsmart.videomanager.tv</item>
         <item>com.disneyplus.ph</item>
+        <item>com.spotify.tv.android</item>
     </string-array>
     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can

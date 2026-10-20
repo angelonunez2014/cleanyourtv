@@ -89,6 +89,10 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     }
 
     static final float FOCUS_SCALE = 1.10f;
+    /** Tiles in the rows below the dock are drawn at this fraction of a dock tile, centred in the same cell. */
+    static final float ROW_TILE_SCALE = 0.8f;
+    /** View types: an app tile in the dock (or the plain grid), the App library footer, an app in the rows below the dock. */
+    private static final int TYPE_TILE = 0, TYPE_LIBRARY = 1, TYPE_ROW_TILE = 2;
     /** Design size of a tile (dp); tiles shrink from here when the columns don't fit, see tileWidthPx. */
     static final float DESIGN_W_DP = 180f, DESIGN_H_DP = 101f;
 
@@ -310,7 +314,7 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        if (viewType == 1) {
+        if (viewType == TYPE_LIBRARY) {
             View row = LayoutInflater.from(ctx).inflate(R.layout.row_app_library, parent, false);
             View button = row.findViewById(R.id.btnLibrary);
             button.setOnClickListener(v -> listener.onLibraryRequested());
@@ -327,7 +331,9 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         float density = parent.getResources().getDisplayMetrics().density;
         int width = parent.getWidth() > 0 ? parent.getWidth() : parent.getMeasuredWidth();
         int inner = width - parent.getPaddingLeft() - parent.getPaddingRight();
-        int w = tileWidthPx(inner, parent.getHeight(), dockSize, rowsBelowDock, dockTitle, dockRow, density), h = tileHeightPx(w);
+        int w = tileWidthPx(inner, parent.getHeight(), dockSize, rowsBelowDock, dockTitle, dockRow, density);
+        if (viewType == TYPE_ROW_TILE) w = Math.round(w * ROW_TILE_SCALE);
+        int h = tileHeightPx(w);
         View card = v.findViewById(R.id.card);
         ViewGroup.LayoutParams cardLp = card.getLayoutParams();
         cardLp.width = w;
@@ -432,7 +438,10 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     boolean isLibraryAt(int position) { return showLibrary && position == items.size(); }
 
-    @Override public int getItemViewType(int position) { return isLibraryAt(position) ? 1 : 0; }
+    @Override public int getItemViewType(int position) {
+        if (isLibraryAt(position)) return TYPE_LIBRARY;
+        return dockRow && position >= dockSize ? TYPE_ROW_TILE : TYPE_TILE;
+    }
 
     boolean containsPackage(String pkg) {
         for (Entry entry : items) if (entry.pkg.equals(pkg)) return true;

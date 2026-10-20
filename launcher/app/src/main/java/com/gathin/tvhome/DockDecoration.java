@@ -55,7 +55,7 @@ public class DockDecoration extends RecyclerView.ItemDecoration {
             float l = child.getLeft() + card.getLeft();
             float t = child.getTop() + card.getTop() + child.getTranslationY();
             float r = l + card.getWidth();
-            cardWidth = card.getWidth();
+            cardWidth = Math.max(cardWidth, card.getWidth());   // the dock's, the widest tile
             left = Math.min(left, l);
             right = Math.max(right, r);
             if (pos < dockSize) {
