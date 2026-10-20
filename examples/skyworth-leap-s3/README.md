@@ -215,6 +215,9 @@ How it behaves:
   in a row, even when the order reshuffles.
 - **Leaving Home:** playback stops and the video decoder is released as soon as an app opens, so it
   costs nothing while you watch something.
+- **Switching videos:** there is no hard cut. When Home loses focus, the current frame is kept as a
+  still. On the way back, the next video dissolves in over that still, over about 2 seconds,
+  starting from its first decoded frame. Photos crossfade over 1.5 seconds.
 - **Darkening:** photos and videos are darkened by `slideshow_dim` so the clock and tiles stay
   readable.
 - **Adding and removing files:** the folder is read again before each item. If you empty it, the

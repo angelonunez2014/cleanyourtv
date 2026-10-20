@@ -666,6 +666,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onPause() {
         super.onPause();
         endReorder();   // Home or another app while reordering keeps the order so far
+        if (slideshow != null) slideshow.pause();
         stopAmbientAnimation();
         heroName.animate().cancel();
         ambient.animate().cancel();

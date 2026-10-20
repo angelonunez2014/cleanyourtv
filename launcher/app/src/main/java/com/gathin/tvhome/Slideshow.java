@@ -33,12 +33,15 @@ import java.util.concurrent.Executors;
  */
 final class Slideshow {
     private static final long FADE_MS = 1500;
+    /** Video to video is a slower, softer dissolve than photo to photo; a hard cut on a moving picture is jarring. */
+    private static final long VIDEO_FADE_MS = 2200;
     /** Pause before trying again after a video fails, so a folder of unplayable files cannot spin. */
     private static final long RETRY_MS = 1000;
 
     private final File dir;
     private final long intervalMs;
     private final long fadeMs;
+    private final long videoFadeMs;
     private final int screenW, screenH;
     private final Handler handler;
     /** Called on the main thread when the folder turns out empty, after everything is cleared. */
@@ -58,6 +61,8 @@ final class Slideshow {
     private Surface surface;
     private MediaPlayer player;
     private boolean topShowing;
+    /** pause() put a still of the playing video under it. */
+    private boolean stillHeld;
     private boolean running;
     /** Bumped by stop(), so a decode or video callback that arrives after it is dropped. */
     private int generation;
@@ -68,6 +73,7 @@ final class Slideshow {
         this.dir = dir;
         this.intervalMs = seconds * 1000L;
         this.fadeMs = animate ? FADE_MS : 0;
+        this.videoFadeMs = animate ? VIDEO_FADE_MS : 0;
         this.handler = handler;
         android.util.DisplayMetrics dm = root.getResources().getDisplayMetrics();
         screenW = dm.widthPixels;
@@ -135,7 +141,41 @@ final class Slideshow {
         running = false;
         generation++;
         handler.removeCallbacks(tick);
+        if (stillHeld) {
+            video.animate().cancel();
+            video.setAlpha(0f);   // the still from pause() takes its place
+        }
+        stillHeld = false;
         releasePlayer();
+    }
+
+    /**
+     * Home is losing focus (onPause): grab the video's current frame while its surface still exists. By onStop
+     * Android has already torn the surface down. The still goes under the video and only shows once stop() hides
+     * the video, so a dialog over Home that resumes without stopping changes nothing.
+     */
+    void pause() {
+        stillHeld = holdLastFrame();
+    }
+
+    /**
+     * Copies the video's current frame as a still into the photo layer under it, so the next video
+     * dissolves in over it on the way back to Home instead of cutting. Half resolution: it is only on screen
+     * while the next video fades in, behind the dim, and a quarter of the memory on a 2 GB box.
+     */
+    private boolean holdLastFrame() {
+        if (player == null || video.getAlpha() == 0f || !video.isAvailable()) return false;
+        Bitmap frame;
+        try {
+            frame = video.getBitmap(Math.max(1, screenW / 2), Math.max(1, screenH / 2));
+        } catch (Exception | OutOfMemoryError e) {
+            return false;   // no still: the next video simply fades in from the layer below
+        }
+        if (frame == null) return false;
+        top.animate().cancel();
+        (topShowing ? top : bottom).setImageBitmap(frame);
+        if (topShowing) top.setAlpha(1f);
+        return true;
     }
 
     /** Takes everything off screen, so the sky or wallpaper underneath shows again. */
@@ -241,8 +281,16 @@ final class Slideshow {
                 if (gen != generation || p != player) return;
                 p.start();
                 scrim.setVisibility(View.VISIBLE);
+            });
+            // Fade in on the first decoded frame, not on prepare: before it the texture is empty and the
+            // dissolve would start over nothing.
+            mp.setOnInfoListener((p, what, extra) -> {
+                if (what != MediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START || gen != generation || p != player) return false;
                 video.animate().cancel();
-                video.animate().alpha(1f).setDuration(fadeMs).start();
+                video.animate().alpha(1f).setDuration(videoFadeMs)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator(1.5f))
+                        .withEndAction(this::dropStill).start();
+                return true;
             });
             mp.setOnErrorListener((p, what, extra) -> {
                 // Unsupported codec or a broken file: skip it.
@@ -255,6 +303,16 @@ final class Slideshow {
             releasePlayer();
             handler.postDelayed(tick, RETRY_MS);
         }
+    }
+
+    /** Once a video covers the screen, the still under it (or an old photo) only costs memory. */
+    private void dropStill() {
+        if (video.getAlpha() < 1f) return;
+        top.animate().cancel();
+        top.setAlpha(0f);
+        top.setImageDrawable(null);
+        bottom.setImageDrawable(null);
+        topShowing = false;
     }
 
     /** Scales the video to cover the screen like CENTER_CROP, cutting off what overflows. */
