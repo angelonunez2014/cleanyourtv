@@ -80,6 +80,12 @@ final class Config {
     final boolean overlayApplied;
     /** Festive skin from a theme (festival, festival_until, greeting, accent_color); {@link Festival#NONE} if none. */
     final Festival festival;
+    /** Folder of photos rotating behind the launcher (config.xml slideshow_dir); empty string turns it off. */
+    final String slideshowDir;
+    /** Seconds each photo shows, 5 to 3600 (slideshow_seconds). */
+    final int slideshowSeconds;
+    /** How much the photos are darkened, 0 to 90 (slideshow_dim), so the clock stays readable. */
+    final int slideshowDim;
 
     private Config(List<String> dockApps, boolean fillDock, List<String> hiddenApps, String liveTvPackage,
                    String liveTvAction, String sourcePanelService, String sourcePanelAction, String inputAction,
@@ -87,7 +93,7 @@ final class Config {
                    boolean shamsiDate, String greetingName, boolean moduleCards, boolean reducedMotion, boolean dockTitle, boolean dockRow, boolean reorderButton, String vpnApp,
                    boolean showHomeSettingsShortcut, boolean showStats, boolean appLibrary, int backgroundColor, int skyIntensity,
                    int[] settingsKeycodes, boolean settingsKeyPanel, File wallpaper, boolean overlayApplied,
-                   Festival festival) {
+                   Festival festival, String slideshowDir, int slideshowSeconds, int slideshowDim) {
         this.dockApps = Collections.unmodifiableList(dockApps);
         this.fillDock = fillDock;
         this.hiddenApps = Collections.unmodifiableList(hiddenApps);
@@ -118,6 +124,9 @@ final class Config {
         this.wallpaper = wallpaper;
         this.overlayApplied = overlayApplied;
         this.festival = festival;
+        this.slideshowDir = slideshowDir;
+        this.slideshowSeconds = slideshowSeconds;
+        this.slideshowDim = slideshowDim;
     }
 
     /** The folder the theme tools push into; null when external storage is unavailable. */
@@ -154,6 +163,9 @@ final class Config {
         int skyIntensity = res.getInteger(R.integer.sky_intensity);
         int[] settingsKeycodes = res.getIntArray(R.array.settings_key_keycodes);
         boolean settingsKeyPanel = res.getBoolean(R.bool.settings_key_panel);
+        String slideshowDir = res.getString(R.string.slideshow_dir).trim();
+        int slideshowSeconds = res.getInteger(R.integer.slideshow_seconds);
+        int slideshowDim = res.getInteger(R.integer.slideshow_dim);
         boolean applied = false;
 
         File dir = dir(ctx);
@@ -188,6 +200,9 @@ final class Config {
             skyIntensity = integer(json, "sky_intensity", skyIntensity, 0, 100);
             settingsKeycodes = intArray(json, "settings_key_keycodes", settingsKeycodes);
             settingsKeyPanel = bool(json, "settings_key_panel", settingsKeyPanel);
+            slideshowDir = string(json, "slideshow_dir", slideshowDir);
+            slideshowSeconds = integer(json, "slideshow_seconds", slideshowSeconds, 5, 3600);
+            slideshowDim = integer(json, "slideshow_dim", slideshowDim, 0, 90);
         }
         // A theme push or reset invalidates choices made on the TV. On first use, remember the
         // current theme without clearing choices from an older launcher version.
@@ -209,7 +224,8 @@ final class Config {
                 Math.max(1, columns), Math.max(0, rowsBelow), animations, advancedEffects,
                 shamsi, greetingName, moduleCards, reducedMotion, dockTitle, dockRow, reorderButton, vpn, homeSettings, showStats, library, background,
                 Math.max(0, Math.min(100, skyIntensity)), settingsKeycodes, settingsKeyPanel, wallpaper, applied,
-                festival);
+                festival, slideshowDir, Math.max(5, Math.min(3600, slideshowSeconds)),
+                Math.max(0, Math.min(90, slideshowDim)));
     }
 
     private static void syncThemeChoices(SharedPreferences choices, File dir, File config) {

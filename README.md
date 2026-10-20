@@ -10,6 +10,15 @@
   <a href="https://x.com/gathint/status/2111379569030939102">The tweet</a>
 </p>
 
+> **About this fork.** This fork adds a complete write-up for the **Skyworth LEAP-S3 Google TV box**,
+> along with launcher features:
+>
+> - **rotating photo and video backgrounds**, with the sky backdrop shown when the folder is empty
+> - **translucent glass** behind the dock and the app rows
+>
+> Start with [examples/skyworth-leap-s3/README.md](examples/skyworth-leap-s3/README.md).
+> Everything below is the original CleanYourTV README.
+
 <p align="center">
   <a href="https://github.com/Gathin23/cleanyourtv/stargazers"><img src="https://img.shields.io/github/stars/Gathin23/cleanyourtv?style=flat&cacheSeconds=1800&color=cfffcf&labelColor=15181e" alt="Stars"></a>
   <a href="https://github.com/Gathin23/cleanyourtv/pulls?q=is%3Amerged"><img src="https://img.shields.io/github/issues-pr-closed/Gathin23/cleanyourtv?style=flat&cacheSeconds=1800&label=merged%20PRs&color=cfffcf&labelColor=15181e" alt="Merged PRs"></a>

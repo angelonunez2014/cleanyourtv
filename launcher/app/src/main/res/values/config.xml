@@ -12,12 +12,13 @@
         <item>com.netflix.ninja</item>
         <item>com.amazon.amazonvideo.livingroom</item>
         <item>com.google.android.youtube.tv</item>
-        <item>in.startv.hotstar</item>
+        <item>com.teamsmart.videomanager.tv</item>
+        <item>com.disneyplus.ph</item>
     </string-array>
     <!-- With fewer dock_apps than columns (or a dock app that is not installed), the free dock slots take
          the first grid apps, so the dock never shows a gap. false leaves them empty (#162); a theme can
          set "fill_dock": false. -->
-    <bool name="fill_dock">true</bool>
+    <bool name="fill_dock">false</bool>
 
     <!-- Apps never shown as tiles (e.g. the Live TV app, which the Inputs menu already covers). -->
     <string-array name="hidden_apps">
@@ -26,7 +27,7 @@
     </string-array>
 
     <!-- The TV's Live TV / tuner app, offered at the end of the Inputs menu. Leave empty to omit. -->
-    <string name="live_tv_package" translatable="false">com.mediatek.wwtv.tvcenter</string>
+    <string name="live_tv_package" translatable="false"></string>
 
     <!-- Some TVs give their Live TV app no leanback entry point at all, so `live_tv_package` above
          resolves to nothing (TCL Android TV 9 on China-market sets is one). This action is then sent
@@ -89,7 +90,7 @@
 
     <!-- Tiles per row in the grid; the dock always has this many slots. Tiles are 180dp wide at 4 columns and
          shrink to fit from 5 up (about 144dp at 5, 117dp at 6 on a 1080p TV). -->
-    <integer name="columns">4</integer>
+    <integer name="columns">6</integer>
 
     <!-- Basic motion is on; advanced effects are opt-in in the launcher's own Settings screen. -->
     <bool name="animations">true</bool>
@@ -120,5 +121,17 @@
          horizon glow around sunrise and sunset. 0 keeps the plain background (the default); 1 to 100
          sets its opacity. Around 60 reads clearly without hiding a wallpaper. Can also be set with
          "sky_intensity": 60 in a theme's config.json. -->
-    <integer name="sky_intensity">0</integer>
+    <integer name="sky_intensity">60</integer>
+
+    <!-- Rotating photos and videos behind everything, crossfading in shuffled order: every .jpg, .png, .webp,
+         .mp4, .webm or .mkv in this folder on the TV. A video plays muted and loops for as long as Home stays on
+         screen; every return to Home moves on to the next file in the shuffled order. 1080p H.264 is the safe choice on a weak box; a file the TV cannot
+         decode is skipped. Add or remove files any time (adb push, a file manager app, a USB drive copy); the
+         folder is read again before each item. While it is empty the sky backdrop above shows instead.
+         Empty turns the slideshow off. Also settable in a theme's config.json ("slideshow_dir"). -->
+    <string name="slideshow_dir" translatable="false">/sdcard/Pictures/TvHome</string>
+    <!-- Seconds each photo stays, 5 to 3600. A video loops until you leave Home instead. -->
+    <integer name="slideshow_seconds">30</integer>
+    <!-- How much the photos and videos are darkened, 0 to 90 percent, so the clock and tiles stay readable. -->
+    <integer name="slideshow_dim">35</integer>
 </resources>

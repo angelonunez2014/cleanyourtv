@@ -119,6 +119,9 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     private String greetingName = "";
     /** Optional time-of-day backdrop (config.xml, sky_intensity); 0 keeps it hidden. */
     private SkyView sky;
+    private int skyIntensity;
+    /** Rotating photos and videos behind everything (config.xml slideshow_dir); null when switched off. */
+    private Slideshow slideshow;
     private String vpnApp;
     private SpringAnimation springX, springY;
     private float glassTargetX, glassTargetY;
@@ -259,9 +262,14 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
 
         root = findViewById(R.id.root);
         root.setBackgroundColor(cfg.backgroundColor);
+        // Before the wallpaper, which then sits under the photos and shows only while there are none.
+        if (!cfg.slideshowDir.isEmpty()) slideshow = new Slideshow(root, new File(cfg.slideshowDir),
+                cfg.slideshowSeconds, cfg.slideshowDim, cfg.animations && !cfg.reducedMotion, handler,
+                () -> sky.setIntensity(skyIntensity));
         if (cfg.wallpaper != null) showWallpaper(cfg.wallpaper);
         sky = findViewById(R.id.sky);
-        sky.setIntensity(cfg.skyIntensity);
+        skyIntensity = cfg.skyIntensity;
+        sky.setIntensity(skyIntensity);
         glass = findViewById(R.id.glass);
         if (festive) glass.setAccent(festival.accentColor());
         ambient = findViewById(R.id.ambient);
@@ -507,34 +515,13 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
      * A picture over 4K is refused rather than decoded (#166); the plain colour stays.
      */
     private void showWallpaper(File file) {
-        try {
-            android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
-            android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
-            opts.inJustDecodeBounds = true;
-            android.graphics.BitmapFactory.decodeFile(file.getPath(), opts);
-            int w = opts.outWidth, h = opts.outHeight;
-            if (w <= 0 || h <= 0) return;
-            int sample = WallpaperSize.sampleSize(w, h, dm.widthPixels, dm.heightPixels);
-            // The limit applies to what is decoded, so a 12 MP photo still works once it is sampled down.
-            if (!WallpaperSize.accepted(w / sample, h / sample)) return;
-            opts.inJustDecodeBounds = false;
-            opts.inSampleSize = sample;
-            int[] scale = WallpaperSize.coverScale(w / sample, h / sample, dm.widthPixels, dm.heightPixels);
-            if (scale != null) {
-                opts.inScaled = true;
-                opts.inDensity = scale[0];
-                opts.inTargetDensity = scale[1];
-            }
-            opts.inPreferredConfig = android.graphics.Bitmap.Config.RGB_565;   // no alpha needed, half the memory
-            android.graphics.Bitmap bmp = android.graphics.BitmapFactory.decodeFile(file.getPath(), opts);
-            if (bmp == null) return;
-            android.widget.ImageView wall = new android.widget.ImageView(this);
-            wall.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
-            wall.setImageBitmap(bmp);
-            root.addView(wall, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-        } catch (Exception | OutOfMemoryError e) {
-            // A bad or huge picture must never take the home screen down; the plain colour stays.
-        }
+        android.util.DisplayMetrics dm = getResources().getDisplayMetrics();
+        android.graphics.Bitmap bmp = Slideshow.decode(file, dm.widthPixels, dm.heightPixels);
+        if (bmp == null) return;   // a bad or huge picture: the plain colour stays
+        android.widget.ImageView wall = new android.widget.ImageView(this);
+        wall.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+        wall.setImageBitmap(bmp);
+        root.addView(wall, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
     }
 
     /**
@@ -561,6 +548,11 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         } else {
             registerReceiver(packageReceiver, packageFilter);
         }
+        // Photos and videos win over the sky backdrop; with none in the folder (yet), the sky shows instead.
+        boolean photos = slideshow != null && slideshow.hasMedia();
+        sky.setIntensity(photos ? 0 : skyIntensity);
+        if (photos) slideshow.start();
+        else if (slideshow != null) slideshow.clear();
     }
 
     @Override
@@ -691,6 +683,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     protected void onStop() {
         super.onStop();
         unregisterReceiver(packageReceiver);
+        if (slideshow != null) slideshow.stop();
         rebuildOnResume = true;
     }
 
@@ -706,6 +699,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if (slideshow != null) slideshow.close();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
         TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
         if (tim != null) tim.unregisterCallback(inputCallback);

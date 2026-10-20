@@ -1,0 +1,30 @@
+# Skyworth LEAP-S3 (2G/16G), "4K Google TV Box", manufacturer SkyworthDigital, Amlogic (droidlogic)
+# Google TV 11. ro.adb.secure=1. Network ADB on port 5555 worked directly.
+# Stock launcher: com.google.android.apps.tv.launcherx. No packages were disabled from the factory.
+#
+# Undo: adb shell pm enable <package> for each line below.
+#
+# Kept: com.mft.rcupair and com.google.android.tv.axel (remote pairing), com.google.android.tv.dfuservice
+# (remote firmware update), com.mft.frontpanelledsservice (front LED), droidlogic packages, Play Store/Services.
+
+# OEM telemetry / remote management / factory tools
+com.oemservice                               # x.cpe BootReceiver: CPE remote-management agent
+com.oem.qa                                   # QA tool, boot receiver
+com.mft.producttest                          # Skyworth factory test (KeyStatusCheck, Debug activities)
+android.autoinstalls.config.google.gtvpai    # silent promoted-app installs
+com.google.android.feedback
+com.google.android.apps.nbu.smartconnect.tv  # mobile-data meter, unused on Wi-Fi
+
+# Not needed on a TV box
+com.android.printspooler
+com.android.camera2
+
+# Off by owner's choice
+com.google.android.youtube.tvmusic
+com.google.android.play.games
+com.google.android.videos
+
+# Stock home. setupwraith's RecoveryActivity also claims HOME (priority 1) and shell cannot disable that one
+# component. The Wi-Fi saved during setup belonged to setupwraith: forget and rejoin it in Settings first.
+com.google.android.tungsten.setupwraith
+com.google.android.apps.tv.launcherx

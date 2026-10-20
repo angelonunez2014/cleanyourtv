@@ -49,6 +49,9 @@ is ignored, and a file that doesn't parse is ignored as a whole, so a theme can 
 | `show_stats` | bool | One line under the clock with CPU, free memory and free storage. Off unless set |
 | `background_color` | `#RRGGBB` | Colour behind everything; black by default |
 | `sky_intensity` | 0 to 100 | Time-of-day backdrop: a dark gradient that follows the clock, 0 hides it (default) |
+| `slideshow_dir` | string | Folder on the TV whose photos and videos (.mp4, .webm, .mkv, played muted) rotate behind the launcher; a video loops until Home is left, and each return to Home moves to the next file. Empty turns it off. While the folder is empty the sky backdrop shows |
+| `slideshow_seconds` | 5 to 3600 | Seconds each slideshow photo stays; a video loops until Home is left |
+| `slideshow_dim` | 0 to 90 | How much slideshow photos and videos are darkened, in percent |
 | `wallpaper` | bool | Show `wallpaper.jpg` from the theme folder (`true`), or ignore it (`false`) |
 | `festival` | string | Turns on a festive skin: the network pill becomes a diya whose flame follows the connection, Inputs a temple bell, Settings a marigold, and the first Home of the day gets a petal shower. `dussehra` and `diwali` have built-in greetings |
 | `festival_until` | `YYYY-MM-DD` | Last day the festive skin shows; it switches itself off after that. A malformed date turns it off |
